@@ -1,0 +1,17 @@
+# Set the path to the package.txt file
+$packageFilePath = "C:\path\to\package.txt"
+
+# Read the contents of the file into an array
+$packages = Get-Content $packageFilePath
+
+# Loop through each package in the array
+foreach ($package in $packages) {
+    # Split the package into its name and version number
+    $packageName, $packageVersion = $package.split(" ")
+
+    # Construct the URL for the package in Artifactory
+    $packageUrl = "https://artifactory.example.com/api/storage/my-repo/$packageName/$packageName-$packageVersion.zip"
+
+    # Download the package from Artifactory
+    Invoke-WebRequest -Uri $packageUrl -OutFile "$packageName-$packageVersion.zip"
+}
