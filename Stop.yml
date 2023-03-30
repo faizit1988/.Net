@@ -1,0 +1,27 @@
+---
+- name: Stop Microservice
+  hosts: your_server_hostname
+  become: yes
+  
+  vars:
+    microservice_name: "artifact_name"
+    microservice_dir: "/opt/app/{{ microservice_name }}"
+    java_opts: "-Xmx1024m -Dspring.profiles.active=prod"
+  
+  tasks:
+    
+  
+    - name: Copy stop script template
+      template:
+        src: stop.j2
+        dest: "{{ microservice_dir }}/stop.sh"
+        mode: "0744"
+      notify: Stop microservice
+  
+  handlers:
+    
+  
+    - name: Stop microservice
+      shell: "{{ microservice_dir }}/stop.sh"
+      async: 0
+      poll: 0

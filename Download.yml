@@ -1,0 +1,13 @@
+- name: Download artifact from Artifactory using wget
+  hosts: localhost
+  gather_facts: false
+  vars:
+    artifactory_url: "https://example.com/artifactory"
+  vars_prompt:
+    - name: "artifact_name"
+      prompt: "Enter the artifact name (e.g. myapp)"
+      private: false
+  tasks:
+    - name: Download artifact
+      shell: "wget --no-check-certificate {{ artifactory_url }}/artifactory/{{ artifact_name }}/{{ artifact_name }}.zip -O /opt/app/deployment/{{ artifact_name }}.zip"
+      become: yes

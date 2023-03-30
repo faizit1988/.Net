@@ -1,0 +1,25 @@
+- name: Extract and update artifact
+  hosts: localhost
+  gather_facts: false
+  vars_prompt:
+    - name: "artifact_name"
+      prompt: "Enter the artifact name (e.g. myapp)"
+      private: false
+  tasks:
+    - name: Extract zip file
+      unarchive:
+        src: "/opt/app/deployment/{{ artifact_name }}.zip"
+        dest: "/opt/app/fi/"
+        remote_src: yes
+        copy: no
+        
+
+    - name: Create symlink to extracted directory
+      file:
+        src: "/opt/app/fi/{{ artifact_name }}"
+        dest: "/opt/app/fi/current"
+        state: link
+      
+
+
+ansible-playbook extract-artifact.yml -e "artifact_name=myapp"

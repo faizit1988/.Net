@@ -1,0 +1,26 @@
+---
+- name: Start Java Microservices
+  hosts: your_server_hostname
+  become: yes
+  
+  vars:
+    microservice_name: "artifact_name"
+    microservice_dir: "/opt/app/{{ microservice_name }}"
+    java_opts: "-Xmx1024m -Dspring.profiles.active=dev"
+  
+  tasks:
+    - name: Copy start script template
+      template:
+        src: start.j2
+        dest: "{{ microservice_dir }}/start.sh"
+        mode: "0744"
+      notify: Start microservice
+  
+    
+  
+  handlers:
+    - name: Start microservice
+      shell: "{{ microservice_dir }}/start.sh"
+      async: 0
+      poll: 0
+  
