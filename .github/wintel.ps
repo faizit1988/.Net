@@ -1,0 +1,39 @@
+Param(
+  [Parameter(Mandatory=$true)]
+  [string]$PackageName,
+  [Parameter(Mandatory=$true)]
+  [string]$PackageVersion
+)
+
+$DownloadURL = ""
+if($PackageName -like "*snapshot*"){
+    $DownloadURL = "URL1"
+}
+elseif($PackageName -like "*release*"){
+    $DownloadURL = "URL2"
+}
+
+$FileName = "$PackageName.$PackageVersion.zip"
+$OutputPath = "D:\Faiz\packages\$FileName"
+Invoke-WebRequest -Uri $DownloadURL -OutFile $OutputPath
+
+# Forcefully stop any process with the package name
+Get-Process | Where-Object {$_.Name -eq $PackageName} | Stop-Process -Force
+
+# Check if the deployment directory exists, and create it or clear its contents if necessary
+$DeploymentDir = "D:\deployment\$PackageName"
+if(Test-Path $DeploymentDir){
+    # Delete all contents of the directory except the logs subdirectory
+    Get-ChildItem $DeploymentDir -Exclude logs | Remove-Item -Recurse -Force
+}
+else{
+    # Create the directory if it doesn't exist
+    New-Item -ItemType Directory -Path $DeploymentDir | Out-Null
+}
+
+# Extract the package zip file inside the deployment directory
+Expand-Archive -Path $OutputPath -DestinationPath $DeploymentDir
+
+# Start the service with the package name
+$ServiceName = "*$PackageName*"
+Get-Service -Name $ServiceName | Start-Service
