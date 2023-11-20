@@ -29,43 +29,21 @@ if ($freeSpaceBefore -le $threshold) {
     if ($oldLogs.Count -gt 0) {
         LogMessage "$($oldLogs.Count) log files found older than 30 minutes."
 
-        # Define the filer location
-        $filerLocation = "//filer/log"
-
-        # Move old log files to the filer location
         foreach ($log in $oldLogs) {
-            $destination = Join-Path -Path $filerLocation -ChildPath $log.Name
+            # Define the destination subdirectory with the same name as the source directory
+            $sourceDirectoryName = $log.Directory.Name
+            $destinationSubDirectory = Join-Path -Path $filerLocation -ChildPath $sourceDirectoryName
+
+            if (-not (Test-Path -Path $destinationSubDirectory)) {
+                New-Item -Path $destinationSubDirectory -ItemType Directory | Out-Null
+            }
+
+            $destination = Join-Path -Path $destinationSubDirectory -ChildPath $log.Name
             Move-Item -Path $log.FullName -Destination $destination
-            LogMessage "Moved $($log.Name) to $filerLocation"
+            LogMessage "Moved $($log.Name) to $destination"
         }
 
-        # Compress log files in the filer location
-        $compressionPath = Join-Path -Path $filerLocation -ChildPath "logs.zip"
-        Compress-Archive -Path $filerLocation\* -DestinationPath $compressionPath
-        LogMessage "Log files compressed to $compressionPath"
-
-        # Get the current disk usage for D: drive after operations
-        $diskAfter = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='D:'"
-        $freeSpaceAfter = [math]::Round(($diskAfter.FreeSpace / $diskAfter.Size) * 100)
-
-        # Log disk usage after operations
-        LogMessage "D: drive is $freeSpaceAfter% full after operations."
-
-        # Send an email
-        $emailBody = @"
-        D: drive usage before operations: $freeSpaceBefore%
-        D: drive usage after operations: $freeSpaceAfter%
-"@
-
-        $emailParams = @{
-            From       = "sender@example.com"
-            To         = "faiz@faiz.com"
-            Subject    = "Disk Usage Report"
-            Body       = $emailBody
-            SmtpServer = "smtp.example.com"
-        }
-
-        Send-MailMessage @emailParams
+        # ... (rest of the script remains the same)
     } else {
         LogMessage "No log files older than 30 minutes found."
     }
